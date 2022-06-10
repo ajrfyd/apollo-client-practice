@@ -1,70 +1,56 @@
-# Getting Started with Create React App
+### Nomad apollo client Movie App
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+> apollo client가 작동하는지 확인 하는 방법.(다른 방법도 있음)
+화면에 출력 되야 한다
+```js
+  // routes/client.js
+  client.query({
+    query: gql`
+      {
+        allMovies {
+          title
+        }
+      }
+    `
+  }).then(data => console.log(data));
+```
 
-## Available Scripts
+> 
+react component가 GET_MOVIE 쿼리를 얻기 위해 변수를 제공($movieId) apollo가 변수의 타입을 넣는다. 
+그 뒤 서버의 쿼리(realMovie)에 그 변수를 파라미터로 넣어줌
 
-In the project directory, you can run:
+```js
+  const GET_MOVIE = gql`
+    query getMovie($movieId: Int!){
+      realMovie(id: $movieId) {
+        id
+        title
+        description_full
+        small_cover_image
+      }
+    }
+  `
+```
 
-### `npm start`
-
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
-
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
-
-### `npm test`
-
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
-
-### `npm run build`
-
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
-
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
-
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
-
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+### local cache
+>useQuery에서 client 안의 cache에 접근
+client에만 존재하며 캐시로 유지할 수 있지만 서버에 저장되지 
+않기 때문에 결국 사라짐
+client query에 isLiked @client 형식으로 정의
+```js
+const likeHandler = () => {
+    cache.writeFragment({
+      // RealMovie 서버쪽 쿼리
+      // apollo dev tools RootQuery에서 찾을 수 있음
+      id: `RealMovie:${+params.id}`,
+      fragment: gql`
+        fragment likeFragment on RealMovie {
+          isLiked
+        }
+      `,
+      data: {
+        isLiked: !data.realMovie.isLiked
+      }
+    })
+  }
+```
